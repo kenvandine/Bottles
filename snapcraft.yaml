@@ -84,14 +84,11 @@ apps:
     environment:
         PYTHONPATH: ${PYTHONPATH}:$SNAP/usr/lib/python3/dist-packages
     plugs:
-      - desktop
-      - desktop-legacy
       - home
       - gsettings
-      - unity7
-      - x11
       - network
       - audio-playback
+      - audio-record
       - removable-media
     slots:
       - dbus-bottles
