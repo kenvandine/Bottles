@@ -1,17 +1,14 @@
 name: bottles
 version: git
-summary: Bottles
-description: "Easily run Windows software on Linux with 🍷 Bottles!"
-license: GPL-3.0+
-icon: data/icons/hicolor/scalable/apps/com.usebottles.bottles.svg
-
+adopt-info: bottles
 base: core20
 confinement: strict
 grade: stable
+license: GPL-3.0+
+icon: data/icons/hicolor/scalable/apps/com.usebottles.bottles.svg
 
 architectures:
-  - build-on: [amd64, armhf, i386]
-    run-on: [amd64, armhf, i386]
+  - build-on: [amd64]
     
 parts:
 
@@ -20,6 +17,7 @@ parts:
     plugin: meson
     meson-parameters: [ --prefix=/usr ]
     source: https://github.com/bottlesdevs/Bottles.git
+    parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
       snapcraftctl pull
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
@@ -80,6 +78,7 @@ apps:
   bottles:
     command: usr/bin/bottles
     desktop: usr/share/applications/com.usebottles.bottles.desktop
+    common-id: com.usebottles.bottles.desktop
     extensions: [gnome-3-38]
     environment:
         PYTHONPATH: ${PYTHONPATH}:$SNAP/usr/lib/python3/dist-packages
