@@ -11,7 +11,6 @@ architectures:
   - build-on: [amd64]
     
 parts:
-
   bottles:
     after: [enable-i386]
     plugin: meson
@@ -21,7 +20,6 @@ parts:
     override-pull: |
       snapcraftctl pull
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
-      sed -i.bak -e 's|Icon=com.usebottles.bottles|Icon=/usr/share/icons/hicolor/scalable/apps/com.usebottles.bottles.svg|g' data/com.usebottles.bottles.desktop.in
     build-packages:
       - python3
       - python3-distutils
