@@ -1,6 +1,33 @@
 name: bottles
 version: git
 adopt-info: bottles
+summary: Run Windows software
+description: |
+  Run Windows software on Linux with Bottles!
+  Bottle software and enjoy at your leisure!
+  Our built-in dependency installation system grants automatic software
+  compatibility access. Use the download manager to download the official components:
+    the runner (Wine, Proton), DXVK, dependencies, etc.
+  Bottle versioning keeps your work safe now and lets you restore it later!
+  Features:
+    * Create bottles using preconfigured environments or create your own
+    * Run executables (.exe/.msi) in your bottles, directly from the context menu of your file-manager
+    * Automated detection of applications installed in your bottles
+    * Add environment variables quickly
+    * Override DLLs directly from per-bottle preferences
+    * On-the-fly runner change for any Bottle
+    * Various gaming-performance optimizations (esync, fsync, DXVK, cache, shader compiler, offload … and much more.)
+    * Automatic installation and management of Wine and Proton runners
+    * Automatic bottle repair in case of breakage
+    * Integrated dependency-installer based on a community-driven repository
+    * Integrated Task manager for Wine processes
+    * Access to ProtonDB and WineHQ for support
+    * System for bringing your configuration to new versions of Bottles
+    * Back up and import bottles
+    * Import Wine prefixes from other managers
+    * Bottles versioning (experimental)
+    * ... and much more that you can find by installing Bottles!
+
 base: core22
 confinement: strict
 grade: stable
@@ -96,7 +123,7 @@ parts:
       - usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio
       - usr/share/alsa
 
-  meson:
+  meson-deps:
     plugin: nil
     source: https://github.com/mesonbuild/meson.git
     override-build:
@@ -107,7 +134,7 @@ parts:
       - ninja-build
 
   libhandy:
-    after: [ meson ]
+    after: [ meson-deps ]
     source: https://gitlab.gnome.org/GNOME/libhandy.git
     source-branch: "libhandy-1-6"
     source-depth: 1
@@ -127,13 +154,14 @@ parts:
       - libgirepository1.0-dev
 
   bottles:
-    after: [ enable-i386, alsa-mixin, libhandy, meson ]
+    after: [ enable-i386, alsa-mixin, libhandy, meson-deps ]
     plugin: meson
     meson-parameters: [ --prefix=/usr ]
     source: https://github.com/bottlesdevs/Bottles.git
     parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
-      craftctl pull
+      craftctl default
+      craftctl set version=$(git describe --tags --abbrev=8)
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
     build-packages:
       - python3
@@ -154,25 +182,25 @@ parts:
       - xz-utils
       - patool
       - libc6-i386
-      #- libglx-mesa0:i386
-      #- libgnutls30:i386
-      #- libvulkan1:i386
-      #- libfreetype6:i386
+      - libglx-mesa0:i386
+      - libgnutls30:i386
+      - libvulkan1:i386
+      - libfreetype6:i386
       - libfreetype6:amd64
-      #- libvkd3d1:i386
+      - libvkd3d1:i386
       - libvkd3d1:amd64
-      #- mesa-va-drivers:i386
+      - mesa-va-drivers:i386
       - mesa-vdpau-drivers:amd64
-      #- mesa-vdpau-drivers:i386
+      - mesa-vdpau-drivers:i386
       - mesa-vulkan-drivers:amd64
-      #- mesa-vulkan-drivers:i386
+      - mesa-vulkan-drivers:i386
       - va-driver-all:amd64
-      #- va-driver-all:i386
-      #- va-driver:i386
+      - va-driver-all:i386
+      - va-driver:i386
       - libvdpau-va-gl1:amd64
       - xdg-utils
       - fontconfig-config
-      #- fontconfig:i386
+      - fontconfig:i386
       - fontconfig:amd64
       - pciutils
       - vulkan-tools # For testing
@@ -196,18 +224,17 @@ parts:
   
   enable-i386:
     plugin: nil
-    override-build: |
-      craftctl default
-      if [ "$CRAFT_ARCH_TRIPLET" = "x86_64-linux-gnu" ]; then
+    override-pull: |
+      if dpkg-architecture --is amd64; then
         dpkg --add-architecture i386
-        apt update
+        apt-get update
       fi
 
   fix-p7zip:
     plugin: nil
     after: [ bottles ]
     override-prime: |
-      craftctl prime
+      craftctl default
       sed -i -e 's|/usr/lib/p7zip/7z|/snap/bottles/current/usr/lib/p7zip/7z|g' usr/bin/7z
 
 apps:
