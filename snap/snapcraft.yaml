@@ -74,8 +74,6 @@ layout:
     bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
-  /etc/vulkan/icd.d:
-    bind: $SNAP/etc/vulkan/icd.d
   /usr/share/vulkan:
     bind: $SNAP/usr/share/vulkan
   /usr/lib/i386-linux-gnu/libvulkan_intel.so:
