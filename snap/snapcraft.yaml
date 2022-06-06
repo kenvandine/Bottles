@@ -1,69 +1,204 @@
 name: bottles
 version: git
-summary: Bottles
-description: "Easily run Windows software on Linux with 🍷 Bottles!"
+adopt-info: bottles
+base: core22
+confinement: strict
+grade: stable
 license: GPL-3.0+
 icon: data/icons/hicolor/scalable/apps/com.usebottles.bottles.svg
 
-base: core20
-confinement: strict
-grade: stable
-
 architectures:
-  - build-on: [amd64, armhf, i386]
-    run-on: [amd64, armhf, i386]
-    
+  - build-on: [amd64]
+plugs:
+  shared-memory:
+    private: true
+
+layout:
+  /usr/share/libdrm:
+    bind: $SNAP/usr/share/libdrm
+  /usr/lib/i386-linux-gnu/dri:
+    bind: $SNAP/usr/lib/i386-linux-gnu/dri
+  /usr/lib/x86_64-linux-gnu/dri:
+    bind: $SNAP/usr/lib/x86_64-linux-gnu/dri
+  /usr/lib/i386-linux-gnu/mesa:
+    bind: $SNAP/usr/lib/i386-linux-gnu/mesa
+  /usr/lib/x86_64-linux-gnu/mesa:
+    bind: $SNAP/usr/lib/x86_64-linux-gnu/mesa
+  /usr/lib/i386-linux-gnu/mesa-egl:
+    bind: $SNAP/usr/lib/i386-linux-gnu/mesa-egl
+  /usr/lib/x86_64-linux-gnu/mesa-egl:
+    bind: $SNAP/usr/lib/x86_64-linux-gnu/mesa-egl
+  /usr/share/glvnd/egl_vendor.d:
+    bind: $SNAP/usr/share/glvnd/egl_vendor.d
+  /usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
+  /etc/vulkan/icd.d:
+    bind: $SNAP/etc/vulkan/icd.d
+  /usr/share/vulkan:
+    bind: $SNAP/usr/share/vulkan
+  /usr/lib/i386-linux-gnu/libvulkan_intel.so:
+    bind-file: $SNAP/usr/lib/i386-linux-gnu/libvulkan_intel.so
+  /usr/lib/x86_64-linux-gnu/libvulkan_intel.so:
+    bind-file: $SNAP/usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+  /usr/lib/i386-linux-gnu/libvulkan_lvp.so:
+    bind-file: $SNAP/usr/lib/i386-linux-gnu/libvulkan_lvp.so
+  /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so:
+    bind-file: $SNAP/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+  /usr/lib/i386-linux-gnu/libvulkan_radeon.so:
+    bind-file: $SNAP/usr/lib/i386-linux-gnu/libvulkan_radeon.so
+  /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so:
+    bind-file: $SNAP/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+  /usr/share/bottles:
+    bind: $SNAP/usr/share/bottles
+  /usr/share/glib-2.0/schemas:
+    bind: $SNAP/usr/share/glib-2.0/schemas
+
 parts:
+  launcher:
+    plugin: nil
+    source : snap/local
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cp desktop-launch $CRAFT_PART_INSTALL/bin/
+
+  alsa-mixin:
+    plugin: dump
+    source: https://github.com/diddlesnaps/snapcraft-alsa.git
+    source-subdir: snapcraft-assets
+    build-packages:
+      - libasound2-dev
+    stage-packages:
+      - libasound2
+      - libasound2-plugins
+      - yad
+    stage:
+      # restrict to only audio-related files - you need to ensure
+      # that gtk3 is staged for yad to work correctly, to prompt
+      # users to connect the alsa plug or proceed with pulseaudio.
+      #
+      # This helps prevent symbol conflicts in situations where
+      # you're using a non-default library, such as those that the
+      # gnome-3-34 extension for core18 provides.
+      - etc/asound.conf
+      - snap/command-chain/alsa-launch
+      - usr/bin/yad*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libasound*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libdnsfile*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libFLAC*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libjack*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libpulse*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libsamplerate*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libspeex*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libvorbis*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio
+      - usr/share/alsa
+
+  meson:
+    plugin: nil
+    source: https://github.com/mesonbuild/meson.git
+    override-build:
+      # Install on the host
+      pip install .
+    build-packages:
+      - python3-pip
+      - ninja-build
+
+  libhandy:
+    after: [ meson ]
+    source: https://gitlab.gnome.org/GNOME/libhandy.git
+    source-branch: "libhandy-1-6"
+    source-depth: 1
+    plugin: meson
+    meson-parameters:
+      - --prefix=/usr
+      - --buildtype=release
+      - -Dvapi=false
+      - -Dintrospection=enabled
+      - -Dgtk_doc=false
+      - -Dtests=false
+      - -Dexamples=false
+      - -Dglade_catalog=disabled
+    build-packages:
+      - cmake
+      - libgtk-3-dev
+      - libgirepository1.0-dev
 
   bottles:
-    after: [enable-i386]
+    after: [ enable-i386, alsa-mixin, libhandy, meson ]
     plugin: meson
     meson-parameters: [ --prefix=/usr ]
     source: https://github.com/bottlesdevs/Bottles.git
+    parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
-      snapcraftctl pull
+      craftctl pull
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
-      sed -i.bak -e 's|Icon=com.usebottles.bottles|Icon=/usr/share/icons/hicolor/scalable/apps/com.usebottles.bottles.svg|g' data/com.usebottles.bottles.desktop.in
     build-packages:
       - python3
       - python3-distutils
-      - gettext
-      - libglib2.0-dev
-      - appstream-util
-      - desktop-file-utils
-      - gsettings-desktop-schemas-dev
       - python3-pytoml
       - python3-requests
-      - libgtk-3-dev
+      - gettext
     stage-packages:
       - python3-gi
       - python3-gi-cairo
       - python3-markdown
-      - gir1.2-gtk-3.0
       - gamemode
       - libgamemode0
       - winbind
-      - libfreetype6
       - cabextract
-      - wine
       - p7zip
       - p7zip-full
+      - xz-utils
       - patool
-      - on amd64:
-          - libc6-i386
-          - libglx-mesa0:i386
-          - libgnutls30:i386
-          - libvulkan1:i386
-          - libfreetype6:i386
-
+      - libc6-i386
+      #- libglx-mesa0:i386
+      #- libgnutls30:i386
+      #- libvulkan1:i386
+      #- libfreetype6:i386
+      - libfreetype6:amd64
+      #- libvkd3d1:i386
+      - libvkd3d1:amd64
+      #- mesa-va-drivers:i386
+      - mesa-vdpau-drivers:amd64
+      #- mesa-vdpau-drivers:i386
+      - mesa-vulkan-drivers:amd64
+      #- mesa-vulkan-drivers:i386
+      - va-driver-all:amd64
+      #- va-driver-all:i386
+      #- va-driver:i386
+      - libvdpau-va-gl1:amd64
+      - xdg-utils
+      - fontconfig-config
+      #- fontconfig:i386
+      - fontconfig:amd64
+      - pciutils
+      - vulkan-tools # For testing
+      - gir1.2-glib-2.0
+      - gir1.2-gtk-3.0
+      - gir1.2-webkit2-4.0
+      - gir1.2-gtksource-4
+      - libglib2.0-0
+      - libglib2.0-bin
     organize:
       snap/bottles/current/usr: usr
+    #prime:
+    #  - -usr/lib/*/*pango*
+    #  - -usr/lib/*/*cairo*
+    #  - -usr/lib/*/libgtk*
+    #  - -usr/lib/*/libgdk*
+    #  - -usr/lib/*/librsvg*
+    #  - -usr/lib/girepository-1.0
+    #  - usr/lib/*/glib-2.0/*
+    #  - usr/bin/gsettings
   
   enable-i386:
     plugin: nil
     override-build: |
-      snapcraftctl build
-      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "x86_64-linux-gnu" ]; then
+      craftctl default
+      if [ "$CRAFT_ARCH_TRIPLET" = "x86_64-linux-gnu" ]; then
         dpkg --add-architecture i386
         apt update
       fi
@@ -72,26 +207,41 @@ parts:
     plugin: nil
     after: [ bottles ]
     override-prime: |
-      snapcraftctl prime
+      craftctl prime
       sed -i -e 's|/usr/lib/p7zip/7z|/snap/bottles/current/usr/lib/p7zip/7z|g' usr/bin/7z
 
 apps:
   bottles:
+    command-chain: [ bin/desktop-launch ]
     command: usr/bin/bottles
     desktop: usr/share/applications/com.usebottles.bottles.desktop
-    extensions: [gnome-3-38]
+    common-id: com.usebottles.bottles.desktop
     environment:
-        PYTHONPATH: ${PYTHONPATH}:$SNAP/usr/lib/python3/dist-packages
+      HOME: $SNAP_USER_COMMON
+      PYTHONPATH: ${PYTHONPATH}:$SNAP/usr/lib/python3/dist-packages
+      LD_LIBRARY_PATH: $SNAP/usr/lib/i386-linux-gnu:$SNAP/lib/i386-linux-gnu:$SNAP/usr/lib/i386-linux-gnu/pulseaudio:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH
+      GI_TYPELIB_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/girepository-1.0
+      XDG_DATA_DIRS: $CRAFT_STAGE/usr/share:/usr/share:$XDG_DATA_DIRS
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
+
     plugs:
-      - desktop
-      - desktop-legacy
       - home
       - gsettings
-      - unity7
-      - x11
       - network
       - audio-playback
+      - audio-record
       - removable-media
+      - shared-memory
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - process-control
+      - hardware-observe
+      - mount-observe
+      - system-observe
+      - hostname-control
     slots:
       - dbus-bottles
 
