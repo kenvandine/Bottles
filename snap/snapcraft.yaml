@@ -36,18 +36,19 @@ icon: data/icons/hicolor/scalable/apps/com.usebottles.bottles.svg
 
 architectures:
   - build-on: [amd64]
+
 plugs:
   gtk-3-themes:
     interface: content
-    target: $SNAP/share/themes
+    target: $SNAP/data-dir/themes
     default-provider: gtk-common-themes
   icon-themes:
     interface: content
-    target: $SNAP/share/icons
+    target: $SNAP/data-dir/icons
     default-provider: gtk-common-themes
   sound-themes:
     interface: content
-    target: $SNAP/share/sounds
+    target: $SNAP/data-dir/sounds
     default-provider: gtk-common-themes
   shmem:
     interface: shared-memory
@@ -92,6 +93,8 @@ layout:
     bind: $SNAP/usr/share/bottles
   /usr/share/glib-2.0/schemas:
     bind: $SNAP/usr/share/glib-2.0/schemas
+  /usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess:
+    bind-file: $SNAP/usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess
 
 parts:
   launcher:
@@ -195,6 +198,7 @@ parts:
       - libc6-i386
       - libglx-mesa0:i386
       - libgnutls30:i386
+      - libgtksourceview-4-0
       - libvulkan1:i386
       - libfreetype6:i386
       - libfreetype6:amd64
@@ -259,7 +263,7 @@ apps:
       PYTHONPATH: ${PYTHONPATH}:$SNAP/usr/lib/python3/dist-packages
       LD_LIBRARY_PATH: $SNAP/usr/lib/i386-linux-gnu:$SNAP/lib/i386-linux-gnu:$SNAP/usr/lib/i386-linux-gnu/pulseaudio:$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH
       GI_TYPELIB_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/girepository-1.0
-      XDG_DATA_DIRS: $CRAFT_STAGE/usr/share:/usr/share:$XDG_DATA_DIRS
+      XDG_DATA_DIRS: $SNAP/usr/share:/usr/share:$XDG_DATA_DIRS
       GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
 
     plugs:
