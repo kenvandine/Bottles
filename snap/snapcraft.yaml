@@ -226,6 +226,7 @@ parts:
       - gir1.2-gtksource-4
       - libglib2.0-0
       - libglib2.0-bin
+      - samba-libs
     organize:
       snap/bottles/current/usr: usr
     #prime:
