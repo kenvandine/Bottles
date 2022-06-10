@@ -95,6 +95,8 @@ layout:
     bind: $SNAP/usr/share/glib-2.0/schemas
   /usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess:
     bind-file: $SNAP/usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess
+  /usr/lib/p7zip:
+    bind: $SNAP/usr/lib/p7zip
 
 parts:
   launcher:
@@ -171,11 +173,10 @@ parts:
     after: [ enable-i386, alsa-mixin, libhandy, meson-deps ]
     plugin: meson
     meson-parameters: [ --prefix=/usr ]
-    source: https://github.com/bottlesdevs/Bottles.git
+    source: .
     parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
       craftctl default
-      craftctl set version=$(git describe --tags --abbrev=8)
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
     build-packages:
       - python3
@@ -244,13 +245,6 @@ parts:
         dpkg --add-architecture i386
         apt-get update
       fi
-
-  fix-p7zip:
-    plugin: nil
-    after: [ bottles ]
-    override-prime: |
-      craftctl default
-      sed -i -e 's|/usr/lib/p7zip/7z|/snap/bottles/current/usr/lib/p7zip/7z|g' usr/bin/7z
 
 apps:
   bottles:
