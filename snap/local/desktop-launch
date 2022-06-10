@@ -72,6 +72,8 @@ else
   ARCH="$SNAP_ARCH-linux-gnu"
 fi
 
+# Force i386
+export ARCH="i386-linux-gnu"
 export SNAP_LAUNCHER_ARCH_TRIPLET="$ARCH"
 
 ###############################################
