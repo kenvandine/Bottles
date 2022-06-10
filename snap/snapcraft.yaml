@@ -222,9 +222,10 @@ parts:
       - pciutils
       - vulkan-tools # For testing
       - gir1.2-glib-2.0
-      - gir1.2-gtk-3.0
+      - gir1.2-gtk-4.0
       - gir1.2-webkit2-4.0
-      - gir1.2-gtksource-4
+      - gir1.2-gtksource-5
+      - gir1.2-adw-1
       - libglib2.0-0
       - libglib2.0-bin
       - samba-libs
