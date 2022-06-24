@@ -254,6 +254,8 @@ parts:
       - gir1.2-gtk-4.0
       - gir1.2-webkit2-4.0
       - gir1.2-gtksource-5
+      - gir1.2-xdp-1.0
+      - gir1.2-xdpgtk4-1.0
       - libglib2.0-0
       - libglib2.0-bin
       - samba-libs
