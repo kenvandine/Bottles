@@ -198,7 +198,7 @@ parts:
     parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
       craftctl default
-      craftctl set version=$(git describe --tags --abbrev=8)
+      craftctl set version=$(git describe --tags --abbrev=8|awk -F "-" {'print $1"-"$5'})
       sed -i -e 's|@PYTHON@|/usr/bin/python3|g' src/bottles.in
     build-packages:
       - python3

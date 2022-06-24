@@ -64,3 +64,6 @@ packagecache
 /repo/
 /flatpak/
 .vscode/*
+
+# Ignore snap build
+*.snap
