@@ -195,7 +195,6 @@ parts:
     plugin: meson
     meson-parameters: [ --prefix=/usr ]
     source: .
-    source-type: git
     parse-info: [usr/share/metainfo/com.usebottles.bottles.appdata.xml]
     override-pull: |
       craftctl default
