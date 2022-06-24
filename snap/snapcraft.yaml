@@ -90,8 +90,6 @@ layout:
     bind-file: $SNAP/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
   /usr/share/bottles:
     bind: $SNAP/usr/share/bottles
-  /usr/share/glib-2.0/schemas:
-    bind: $SNAP/usr/share/glib-2.0/schemas
   /usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess:
     bind-file: $SNAP/usr/lib/x86_64-linux-gnu/webkit2gtk-4.0/WebKitNetworkProcess
   /usr/lib/p7zip:
